@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>For Em</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Poppins:wght@300;400;500&display=swap');
+
+        /* --- GLOBAL STYLES --- */
+        :root {
+            --bg-dark: #030811;
+            --luxury-blue: #0A1931;
+            --glass-blue: rgba(10, 25, 49, 0.45);
+            --gold: #D4AF37;
+            --light-gold: #F3E5AB;
+            --text-main: #EAEAEA;
+            --text-muted: #A0AAB2;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at center, var(--luxury-blue) 0%, var(--bg-dark) 100%);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-attachment: fixed;
+            -webkit-tap-highlight-color: transparent; /* Removes tap flash on iOS */
+        }
+
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+            color: var(--gold);
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        /* --- GLASSMORPHISM PREMIUM UTILITY --- */
+        .glass-card {
+            background: var(--glass-blue);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 16px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        /* --- AUTHENTICATION MODAL (EXPENSIVE LOOK) --- */
+        #auth-modal, #success-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            background: radial-gradient(circle at center, rgba(10,25,49,0.9) 0%, rgba(3,8,17,0.95) 100%);
+            backdrop-filter: blur(10px);
+            transition: opacity 1s ease;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .auth-box {
+            padding: 40px 30px;
+            text-align: center;
+            width: 100%;
+            max-width: 360px; /* Optimized for mobile width */
+            transform: translateY(0);
+            animation: floatIn 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-sizing: border-box;
+        }
+
+        .auth-box h2 {
+            font-size: 26px;
+            margin-bottom: 5px;
+            margin-top: 0;
+        }
+
+        .auth-box p {
+            color: var(--text-muted);
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 35px;
+        }
+
+        /* Premium Input Field */
+        .auth-box input {
+            width: 80px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+            color: var(--gold);
+            font-size: 36px;
+            font-family: 'Playfair Display', serif;
+            text-align: center;
+            padding: 8px 0;
+            margin-bottom: 35px;
+            outline: none;
+            transition: border-color 0.3s, text-shadow 0.3s;
+        }
+
+        .auth-box input:focus {
+            border-bottom: 2px solid var(--gold);
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Hide the up/down arrows in the number input */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+
+        .auth-box button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #FBF5B7);
+            background-size: 300% 300%;
+            color: var(--bg-dark);
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            animation: gradientShift 4s ease infinite;
+        }
+
+        .auth-box button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(212, 175, 55, 0.2);
+        }
+
+        #error-msg {
+            color: #E74C3C;
+            margin-top: 20px;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            min-height: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        /* --- SUCCESS MODAL --- */
+        #success-modal h1 {
+            font-size: 3rem;
+            font-weight: 400;
+            font-style: italic;
+            text-align: center;
+            background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: floatingText 3s ease-in-out infinite alternate;
+            padding: 0 20px;
+        }
+
+        /* --- MAIN CONTENT --- */
+        #main-content {
+            display: none;
+            width: 100%;
+            max-width: 900px;
+            padding: 30px 15px;
+            box-sizing: border-box;
+            min-height: 100vh;
+            flex-direction: column;
+            opacity: 0;
+            animation: fadeIn 1.5s ease forwards;
+        }
+
+        .main-title {
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 5px;
+            margin-top: 20px;
+        }
+
+        /* Premium Navbar */
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 15px;
+        }
+
+        nav button {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            position: relative;
+            padding: 5px 0;
+            transition: color 0.3s;
+        }
+
+        nav button::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 50%;
+            background-color: var(--gold);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        nav button:hover, nav button.active {
+            color: var(--gold);
+        }
+
+        nav button.active::after {
+            width: 100%;
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+            padding: 30px 20px;
+            animation: slideUp 0.6s ease-out forwards;
+            box-sizing: border-box;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section h2 {
+            font-size: 22px;
+            margin-top: 0;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        /* Letter Section */
+        .sms-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sms-bubble {
+            background: linear-gradient(145deg, #1A2A44, #0F1C30);
+            padding: 16px 20px;
+            border-radius: 20px 20px 20px 5px;
+            display: inline-block;
+            cursor: pointer;
+            transition: all 0.3s;
+            max-width: 85%;
+            border: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-main);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            font-size: 15px;
+        }
+        
+        .sms-bubble:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+
+        #hidden-message {
+            display: none;
+            margin-top: 10px;
+            padding: 25px 20px;
+            border-radius: 12px;
+            border-left: 4px solid var(--gold);
+            line-height: 1.8;
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 16px;
+            color: var(--light-gold);
+        }
+
+        /* Music Section (Text Based) */
+        .song-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .song-item {
+            background: linear-gradient(145deg, rgba(26, 42, 68, 0.5), rgba(15, 28, 48, 0.5));
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.3s, border-color 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .song-item:hover {
+            transform: translateY(-2px);
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+
+        .song-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--gold);
+        }
+
+        .song-artist {
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Notes Section (Segmented Blocks) */
+        .notes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .note-item {
+            background: linear-gradient(145deg, rgba(26, 42, 68, 0.5), rgba(15, 28, 48, 0.5));
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.3s, border-color 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .note-item p {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            color: var(--text-main);
+        }
+
+        /* Gallery Section */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .gallery-item {
+            overflow: hidden;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            aspect-ratio: 4/5; /* Keeps images looking consistent on mobile */
+        }
+
+        .gallery-item::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 12px;
+            pointer-events: none;
+            box-sizing: border-box;
+            transition: border-color 0.4s;
+        }
+
+        .gallery-grid img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            filter: brightness(0.85);
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes floatIn {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes floatingText {
+            0% { transform: translateY(0px); text-shadow: 0 10px 20px rgba(212,175,55,0.2); }
+            100% { transform: translateY(-10px); text-shadow: 0 20px 30px rgba(212,175,55,0.4); }
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- RESPONSIVE ADJUSTMENTS FOR iPHONE 12 & MOBILE --- */
+        @media (max-width: 428px) { /* iPhone 12 Pro Max is 428px wide */
+            .main-title {
+                font-size: 28px;
+            }
+            
+            nav {
+                gap: 15px;
+            }
+
+            nav button {
+                font-size: 11px;
+            }
+
+            .section {
+                padding: 25px 15px;
+            }
+
+            .section h2 {
+                font-size: 20px;
+            }
+
+            .sms-bubble {
+                max-width: 95%;
+                font-size: 14px;
+            }
+
+            #hidden-message {
+                font-size: 15px;
+                padding: 20px 15px;
+            }
+
+            .song-item {
+                padding: 16px;
+            }
+
+            .song-title {
+                font-size: 16px;
+            }
+
+            .song-artist {
+                font-size: 12px;
+            }
+
+            .note-item {
+                padding: 16px;
+            }
+
+            .note-item p {
+                font-size: 15px;
+            }
+
+            .gallery-grid {
+                grid-template-columns: repeat(2, 1fr); /* 2 columns on iPhone */
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. AUTHENTICATION MODAL -->
+    <div id="auth-modal">
+        <div class="auth-box glass-card">
+            <h2>Welcome</h2>
+            <p>Enter Our Birthdate</p>
+            <input type="number" id="bdateInput" placeholder="DD" inputmode="numeric" pattern="[0-9]*">
+            <br>
+            <button onclick="checkDate()">Unlock</button>
+            <div id="error-msg"></div>
+        </div>
+    </div>
+
+    <!-- 2. SUCCESS MODAL -->
+    <div id="success-modal" style="display: none;">
+        <h1>Hi em!<br>Enjoy your stay ✨</h1>
+    </div>
+
+    <!-- 3. MAIN CONTENT -->
+    <div id="main-content">
+        
+        <h2 class="main-title">For Em</h2>
+
+        <!-- Navigation -->
+        <nav>
+            <button class="nav-btn active" onclick="showSection('letter')">Letter</button>
+            <button class="nav-btn" onclick="showSection('music')">Music</button>
+            <button class="nav-btn" onclick="showSection('notes')">Notes</button>
+            <button class="nav-btn" onclick="showSection('gallery')">Gallery</button>
+        </nav>
+
+        <!-- Letter Section -->
+        <div id="letter" class="section glass-card active">
+            <h2>A Message For You</h2>
+            <div class="sms-container">
+                <div class="sms-bubble" onclick="revealMessage()">
+                    A Letter for you ✨ (Tap to open)
+                </div>
+                
+                <div id="hidden-message" class="glass-card">
+                    Dearest Em,<br><br>
+
+                    I’ve been thinking about what i said earlier, and i realized na baka naging insensitive ako without meaning to. Hindi ko agad napansin pero looking back, I get why it could’ve come off the wrong way.
+                    <br><br>
+                    I’m sorry if i made you feel uncomfortable or parang hindi ko sineryoso yung nararamdaman mo. That wasn’t my intention at all. Minsan nadadala lang ako sa pagiging casual ko sa pag chat, but i know i should still be more mindful especially when it comes to you.
+                    <br><br>
+                    I’m not trying to make a big deal out of it, gusto ko lang maging honest and clear that i didn’t mean to offend you. I’ll do better next time.
+                    <br><br>
+                    Magpagaling ka and don’t forget to take your meds para hindi na yan tumuloy sa lagnat. Take care of yourself din. I miss talking with you.
+                    <br><br>
+                    -lord,<br>
+                </div>
+            </div>
+        </div>
+
+        <!-- Music Section -->
+        <div id="music" class="section glass-card">
+            <h2>Songs that remind me of you</h2>
+            <div class="song-list">
+                <div class="song-item">
+                    <span class="song-title">Falling for you</span>
+                    <span class="song-artist">The 1975</span>
+                </div>
+                <div class="song-item">
+                    <span class="song-title">Statue</span>
+                    <span class="song-artist">Lil Eddie</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes Section -->
+        <div id="notes" class="section glass-card">
+            <h2>Some Reminders</h2>
+            <div class="notes-list">
+                <div class="note-item">
+                    <p><b>Take care always</b></p>
+                </div>
+                <div class="note-item">
+                    <p><b>Eat on time</b></p>
+                </div>
+                <div class="note-item">
+                    <p><b>Take your meds</b></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gallery Section -->
+        <div id="gallery" class="section glass-card">
+            <h2>Flowers for you 🦋</h2>
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <img src="1.jpg" alt="Beautiful Blue Flowers">
+                </div>
+                <div class="gallery-item">
+                    <img src="2.jpg" alt="Soft Blue Petals">
+                </div>
+                <div class="gallery-item">
+                    <img src="3.jpg" alt="Blue Hydrangeas">
+                </div>
+                <div class="gallery-item">
+                    <img src="4.jpg" alt="Macro Blue Flower">
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- --- JAVASCRIPT LOGIC --- -->
+    <script>
+        // 1. Birthdate Authentication Logic
+        function checkDate() {
+            const inputVal = document.getElementById('bdateInput').value;
+            const errorMsg = document.getElementById('error-msg');
+            const authModal = document.getElementById('auth-modal');
+            const successModal = document.getElementById('success-modal');
+            const mainContent = document.getElementById('main-content');
+
+            if (inputVal === "29") {
+                // Fade out auth modal
+                authModal.style.opacity = "0";
+                
+                // Hide keyboard on mobile by blurring input
+                document.getElementById('bdateInput').blur();
+
+                setTimeout(() => {
+                    authModal.style.display = "none";
+                    successModal.style.display = "flex";
+                    
+                    // Small delay before setting opacity to 1 to trigger CSS transition
+                    setTimeout(() => {
+                        successModal.style.opacity = "1";
+                    }, 50);
+                    
+                    // Show success for 3 seconds, then reveal main site
+                    setTimeout(() => {
+                        successModal.style.opacity = "0";
+                        setTimeout(() => {
+                            successModal.style.display = "none";
+                            mainContent.style.display = "flex";
+                        }, 1000); // Wait for fade out
+                    }, 3000);
+                }, 1000); // Wait for auth fade out
+                
+            } else {
+                errorMsg.style.opacity = "1";
+                if (inputVal === "") {
+                    errorMsg.innerText = "Please enter a date.";
+                } else {
+                    errorMsg.innerText = "Mali ka!!  Birthdate ba natin yang " + inputVal + "?";
+                }
+                
+                // Shake effect for wrong input
+                const authBox = document.querySelector('.auth-box');
+                authBox.animate([
+                    { transform: 'translateX(0)' },
+                    { transform: 'translateX(-10px)' },
+                    { transform: 'translateX(10px)' },
+                    { transform: 'translateX(-10px)' },
+                    { transform: 'translateX(10px)' },
+                    { transform: 'translateX(0)' }
+                ], { duration: 400 });
+            }
+        }
+
+        // Allow pressing Enter to submit
+        document.getElementById("bdateInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                checkDate();
+            }
+        });
+
+        // 2. Navigation Logic
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(sec => sec.classList.remove('active'));
+
+            const buttons = document.querySelectorAll('.nav-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // 3. SMS Reveal Logic
+        function revealMessage() {
+            const hiddenMsg = document.getElementById('hidden-message');
+            if (hiddenMsg.style.display === "block") {
+                hiddenMsg.style.opacity = "0";
+                setTimeout(() => { hiddenMsg.style.display = "none"; }, 300);
+            } else {
+                hiddenMsg.style.display = "block";
+                hiddenMsg.style.animation = "slideUp 0.5s ease forwards";
+            }
+        }
+    </script>
+</body>
+</html>
